@@ -26,7 +26,7 @@ public class ApiController {
     @GetMapping("/users")
     public ResponseEntity<?> getUsers() {
         List<Map<String, Object>> users = new ArrayList<>();
-        String sql = "SELECT id, name FROM user";
+        String sql = "SELECT id, name, email FROM user"; // Added email to SELECT
         
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql);
@@ -49,12 +49,13 @@ public class ApiController {
 
     @PostMapping("/users")
     public ResponseEntity<?> createUser(@RequestBody Map<String, String> request) {
-        String sql = "INSERT INTO user (name) VALUES (?)";
+        String sql = "INSERT INTO user (name, email) VALUES (?, ?)"; // Added email to INSERT
         
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
             statement.setString(1, request.get("name"));
+            statement.setString(2, request.get("email")); // Bind email parameter
             int affectedRows = statement.executeUpdate();
 
             if (affectedRows > 0) {
@@ -62,6 +63,8 @@ public class ApiController {
                     if (generatedKeys.next()) {
                         Map<String, Object> response = new HashMap<>();
                         response.put("id", generatedKeys.getLong(1));
+                        response.put("name", request.get("name"));
+                        response.put("email", request.get("email"));
                         response.put("message", "User created successfully");
                         return ResponseEntity.status(HttpStatus.CREATED).body(response);
                     }
@@ -76,13 +79,14 @@ public class ApiController {
 
     @PutMapping("/users/{id}")
     public ResponseEntity<?> updateUser(@PathVariable int id, @RequestBody Map<String, String> request) {
-        String sql = "UPDATE user SET name = ? WHERE id = ?";
+        String sql = "UPDATE user SET name = ?, email = ? WHERE id = ?"; // Added email to UPDATE
         
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
 
             statement.setString(1, request.get("name"));
-            statement.setInt(2, id);
+            statement.setString(2, request.get("email")); // Bind email parameter
+            statement.setInt(3, id);
             
             int affectedRows = statement.executeUpdate();
             if (affectedRows > 0) {
@@ -117,7 +121,7 @@ public class ApiController {
 
     @GetMapping("/users/{id}")
     public ResponseEntity<?> getUserById(@PathVariable int id) {
-        String sql = "SELECT id, name FROM user WHERE id = ?";
+        String sql = "SELECT id, name, email FROM user WHERE id = ?"; // Added email to SELECT
         
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -128,6 +132,7 @@ public class ApiController {
                     Map<String, Object> user = new HashMap<>();
                     user.put("id", resultSet.getInt("id"));
                     user.put("name", resultSet.getString("name"));
+                    user.put("email", resultSet.getString("email")); // Include email in response
                     return ResponseEntity.ok(user);
                 }
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
