@@ -1,7 +1,11 @@
 // routes/userRoutes.js
 import express from 'express';
 import bcrypt from 'bcryptjs';
+import cors from 'cors';
 const router = express.Router();
+
+// Enable CORS
+router.use(cors());
 
 // Validation middleware
 const validateUser = (req, res, next) => {
@@ -28,10 +32,7 @@ router.get('/users', async (req, res) => {
     const [rows] = await req.db.query(
       'SELECT id, name, email FROM user'
     );
-    res.json({ 
-      success: true,
-      data: rows 
-    });
+    res.json(rows);
   } catch (error) {
     res.status(500).json({ 
       success: false,
@@ -62,7 +63,7 @@ router.post('/users', validateUser, async (req, res) => {
 
     const [result] = await req.db.query(
       'INSERT INTO user (name, email, password) VALUES (?, ?, ?)',
-      [name, email, password]
+      [name, email, hashedPassword]
     );
 
     res.status(201).json({ 
@@ -83,64 +84,83 @@ router.post('/users', validateUser, async (req, res) => {
   }
 });
 
-// GET single user
-router.get('/users/:id', async (req, res) => {
+
+// GET all notes
+router.get('/notes', async (req, res) => {
   try {
     const [rows] = await req.db.query(
-      'SELECT id, name, email FROM user WHERE id = ?',
-      [req.params.id]
+      'SELECT id, title, category, description FROM note'
     );
-
-    if (rows.length === 0) {
-      return res.status(404).json({ 
-        success: false,
-        message: 'User not found' 
-      });
-    }
-
-    res.json({ 
-      success: true,
-      data: rows[0] 
-    });
+    res.json(rows);
   } catch (error) {
     res.status(500).json({ 
       success: false,
-      message: 'Failed to fetch user',
+      message: 'Failed to fetch users',
       error: error.message 
     });
   }
 });
 
-// PUT update user
-router.put('/users/:id', async (req, res) => {
-  try {
-    const { name, email } = req.body;
-    const userId = req.params.id;
 
-    if (!name || !email) {
-      return res.status(400).json({ 
+// POST create note
+router.post('/notes', async (req, res) => {
+  try {
+    const { title, category, description } = req.body;
+
+    // Check if title exists
+    const [existing] = await req.db.query(
+      'SELECT id FROM note WHERE title = ?',
+      [title]
+    );
+
+    if (existing.length > 0) {
+      return res.status(409).json({ 
         success: false,
-        message: 'Name and email are required' 
+        message: 'title already exists' 
       });
     }
 
-    // Check if user exists
-    const [existing] = await req.db.query(
-      'SELECT id FROM user WHERE id = ?',
-      [userId]
+    const [result] = await req.db.query(
+      'INSERT INTO note (title, category, description) VALUES (?, ?, ?)',
+      [title, category, description]
     );
 
-    if (existing.length === 0) {
+    res.status(201).json({ 
+      success: true,
+      message: 'ote created successfully',
+      data: { 
+        id: result.insertId,
+        title,
+        category,
+        description
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      success: false,
+      message: 'Failed to create user',
+      error: error.message 
+    });
+  }
+});
+// PUT update user
+router.put('/users/:id', validateUser, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, email, password } = req.body;
+    const hashedPassword = await bcrypt.hash(password, 12);
+
+    const [result] = await req.db.query(
+      'UPDATE user SET name = ?, email = ?, password = ? WHERE id = ?',
+      [name, email, hashedPassword, id]
+    );
+
+    if (result.affectedRows === 0) {
       return res.status(404).json({ 
         success: false,
         message: 'User not found' 
       });
     }
-
-    await req.db.query(
-      'UPDATE user SET name = ?, email = ? WHERE id = ?',
-      [name, email, userId]
-    );
 
     res.json({ 
       success: true,
@@ -158,9 +178,11 @@ router.put('/users/:id', async (req, res) => {
 // DELETE user
 router.delete('/users/:id', async (req, res) => {
   try {
+    const { id } = req.params;
+
     const [result] = await req.db.query(
       'DELETE FROM user WHERE id = ?',
-      [req.params.id]
+      [id]
     );
 
     if (result.affectedRows === 0) {
@@ -182,5 +204,67 @@ router.delete('/users/:id', async (req, res) => {
     });
   }
 });
+
+// PUT update note
+router.put('/notes/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, category, description } = req.body;
+
+    const [result] = await req.db.query(
+      'UPDATE note SET title = ?, category = ?, description = ? WHERE id = ?',
+      [title, category, description, id]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ 
+        success: false,
+        message: 'Note not found' 
+      });
+    }
+
+    res.json({ 
+      success: true,
+      message: 'Note updated successfully' 
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      success: false,
+      message: 'Failed to update note',
+      error: error.message 
+    });
+  }
+});
+
+// DELETE note
+router.delete('/notes/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const [result] = await req.db.query(
+      'DELETE FROM note WHERE id = ?',
+      [id]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ 
+        success: false,
+        message: 'Note not found' 
+      });
+    }
+
+    res.json({ 
+      success: true,
+      message: 'Note deleted successfully' 
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      success: false,
+      message: 'Failed to delete note',
+      error: error.message 
+    });
+  }
+});
+
 
 export default router;

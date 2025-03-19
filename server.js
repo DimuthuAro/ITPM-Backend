@@ -3,6 +3,7 @@ import express from 'express';
 import mysql from 'mysql2/promise';
 // Removed unused bcrypt import
 import dotenv from 'dotenv';
+import cors from 'cors';
 
 dotenv.config();
 
@@ -13,7 +14,7 @@ app.use(express.json());
 const pool = mysql.createPool({
   host: "localhost",
   user: "root",
-  password: "root",
+  password: "",
   database: "notegenius",
   waitForConnections: true,
   connectionLimit: 10,
@@ -29,7 +30,7 @@ app.use((req, _, next) => {
 // Routes
 import router from './router.js';
 app.use('/api', router);
-
+app.use(cors());
 // Error handling middleware
 app.use((err, _, res, __) => {
   console.error(err.stack);
