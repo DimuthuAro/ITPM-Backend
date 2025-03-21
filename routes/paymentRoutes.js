@@ -29,7 +29,7 @@ router.get('/', async (req, res) => {
 });
 
 // POST create payment
-router.post('/', validatePayment, async (req, res) => {
+router.post('/', async (req, res) => {
   try {
     const { amount, method, user_id } = req.body;
 
@@ -58,7 +58,7 @@ router.post('/', validatePayment, async (req, res) => {
 });
 
 // PUT update payment
-router.put('/:id', validatePayment, async (req, res) => {
+router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const { amount, method, user_id } = req.body;

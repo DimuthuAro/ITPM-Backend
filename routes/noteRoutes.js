@@ -29,7 +29,7 @@ router.get('/', async (req, res) => {
 });
 
 // POST create note
-router.post('/', validateNote, async (req, res) => {
+router.post('/', async (req, res) => {
   try {
     const { title, category, description, user_id } = req.body;
 
@@ -72,7 +72,7 @@ router.post('/', validateNote, async (req, res) => {
 });
 
 // PUT update note
-router.put('/:id', validateNote, async (req, res) => {
+router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const { title, category, description, user_id } = req.body;

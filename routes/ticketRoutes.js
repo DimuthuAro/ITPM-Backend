@@ -29,7 +29,7 @@ router.get('/', async (req, res) => {
 });
 
 // POST create ticket
-router.post('/', validateTicket, async (req, res) => {
+router.post('/',  async (req, res) => {
   try {
     const { title, description, status, user_id } = req.body;
 
@@ -59,7 +59,7 @@ router.post('/', validateTicket, async (req, res) => {
 });
 
 // PUT update ticket
-router.put('/:id', validateTicket, async (req, res) => {
+router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const { title, description, status, user_id } = req.body;

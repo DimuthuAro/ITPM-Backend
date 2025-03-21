@@ -30,7 +30,7 @@ router.get('/', async (req, res) => {
 });
 
 // POST create user
-router.post('/', validateUser, async (req, res) => {
+router.post('/', async (req, res) => {
   try {
     const { name, email, password } = req.body;
     const hashedPassword = await bcrypt.hash(password, 12);
@@ -72,17 +72,25 @@ router.post('/', validateUser, async (req, res) => {
 });
 
 // PUT update user
-router.put('/:id', validateUser, async (req, res) => {
+router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
+    console.log(id);
     const { name, email, password } = req.body;
-    const hashedPassword = await bcrypt.hash(password, 12);
+    let query = 'UPDATE user SET name = ?, email = ?';
+    const params = [name, email];
 
-    const [result] = await req.db.query(
-      'UPDATE user SET name = ?, email = ?, password = ? WHERE id = ?',
-      [name, email, hashedPassword, id]
-    );
+    if (password) {
+      const hashedPassword = await bcrypt.hash(password, 12);
+      query += ', password = ?';
+      params.push(hashedPassword);
+    }
 
+    query += ' WHERE id = ?';
+    params.push(id);
+
+    const [result] = await req.db.query(query, params);
+    console.log(result);
     if (result.affectedRows === 0) {
       return res.status(404).json({ 
         success: false,
