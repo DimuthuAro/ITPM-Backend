@@ -43,10 +43,9 @@ router.get('/users', async (req, res) => {
 });
 
 // POST create user
-router.post('/users', validateUser, async (req, res) => {
+router.post('/users',  async (req, res) => {
   try {
     const { name, email, password } = req.body;
-    const hashedPassword = await bcrypt.hash(password, 12);
 
     // Check if email exists
     const [existing] = await req.db.query(
@@ -63,7 +62,7 @@ router.post('/users', validateUser, async (req, res) => {
 
     const [result] = await req.db.query(
       'INSERT INTO user (name, email, password) VALUES (?, ?, ?)',
-      [name, email, hashedPassword]
+      [name, email, password]
     );
 
     res.status(201).json({ 
@@ -266,5 +265,110 @@ router.delete('/notes/:id', async (req, res) => {
   }
 });
 
+// GET all payments
+router.get('/payments', async (req, res) => {
+  try {
+    const [rows] = await req.db.query(
+      'SELECT id, amount, method, status FROM payment'
+    );
+    res.json(rows);
+  } catch (error) {
+    res.status(500).json({ 
+      success: false,
+      message: 'Failed to fetch payments',
+      error: error.message 
+    });
+  }
+});
+
+// POST create payment
+router.post('/payments', async (req, res) => {
+  try {
+    const { amount, method, status } = req.body;
+
+    const [result] = await req.db.query(
+      'INSERT INTO payment (amount, method, status) VALUES (?, ?, ?)',
+      [amount, method, status]
+    );
+
+    res.status(201).json({ 
+      success: true,
+      message: 'Payment created successfully',
+      data: { 
+        id: result.insertId,
+        amount,
+        method,
+        status
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      success: false,
+      message: 'Failed to create payment',
+      error: error.message 
+    });
+  }
+});
+
+// PUT update payment
+router.put('/payments/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { amount, method, status } = req.body;
+
+    const [result] = await req.db.query(
+      'UPDATE payment SET amount = ?, method = ?, status = ? WHERE id = ?',
+      [amount, method, status, id]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ 
+        success: false,
+        message: 'Payment not found' 
+      });
+    }
+
+    res.json({ 
+      success: true,
+      message: 'Payment updated successfully' 
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      success: false,
+      message: 'Failed to update payment',
+      error: error.message 
+    });
+  }
+});
+
+// DELETE payment
+router.delete('/payments/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const [result] = await req.db.query(
+      'DELETE FROM payment WHERE id = ?',
+      [id]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ 
+        success: false,
+        message: 'Payment not found' 
+      });
+    }
+
+    res.json({ 
+      success: true,
+      message: 'Payment deleted successfully' 
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      success: false,
+      message: 'Failed to delete payment',
+      error: error.message 
+    });
+  }
+});
 
 export default router;
