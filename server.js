@@ -8,7 +8,7 @@ import userRoutes from './routes/userRoutes.js';
 import noteRoutes from './routes/noteRoutes.js';
 import paymentRoutes from './routes/paymentRoutes.js';
 import ticketRoutes from './routes/ticketRoutes.js';
-
+import authroutes from './routes/authroutes.js';
 dotenv.config();
 
 const app = express();
@@ -36,7 +36,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/notes', noteRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/tickets', ticketRoutes);
-
+app.use('/api', authroutes);
 
 // Error handling middleware
 app.use((err, _, res, __) => {
