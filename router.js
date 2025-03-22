@@ -269,7 +269,7 @@ router.delete('/notes/:id', async (req, res) => {
 router.get('/payments', async (req, res) => {
   try {
     const [rows] = await req.db.query(
-      'SELECT id, amount, method, status FROM payment'
+      'SELECT id,name, amount, method,date, status FROM payment'
     );
     res.json(rows);
   } catch (error) {
@@ -284,11 +284,11 @@ router.get('/payments', async (req, res) => {
 // POST create payment
 router.post('/payments', async (req, res) => {
   try {
-    const { amount, method, status } = req.body;
+    const { name,amount, method,date, status } = req.body;
 
     const [result] = await req.db.query(
-      'INSERT INTO payment (amount, method, status) VALUES (?, ?, ?)',
-      [amount, method, status]
+      'INSERT INTO payment (name,amount, method,date, status) VALUES (?, ?, ?)',
+      [name,amount, method,date, status]
     );
 
     res.status(201).json({ 
@@ -296,8 +296,10 @@ router.post('/payments', async (req, res) => {
       message: 'Payment created successfully',
       data: { 
         id: result.insertId,
+        name,
         amount,
         method,
+        date,
         status
       }
     });
@@ -314,11 +316,11 @@ router.post('/payments', async (req, res) => {
 router.put('/payments/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { amount, method, status } = req.body;
+    const { name,amount, method,date, status } = req.body;
 
     const [result] = await req.db.query(
-      'UPDATE payment SET amount = ?, method = ?, status = ? WHERE id = ?',
-      [amount, method, status, id]
+      'UPDATE payment SET name = ?, amount = ?, method = ?,date = ?, status = ? WHERE id = ?',
+      [name,amount, method,date, status, id]
     );
 
     if (result.affectedRows === 0) {
