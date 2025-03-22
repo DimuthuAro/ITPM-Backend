@@ -2,7 +2,7 @@ import express from 'express';
 const router = express.Router();
 
 // Validation middleware for payment
-const validatePayment = (req, res, next) => {
+const jayani = (req, res, next) => {
   if (!req.body.amount || !req.body.method || !req.body.user_id) {
     return res.status(400).json({ 
       success: false,
