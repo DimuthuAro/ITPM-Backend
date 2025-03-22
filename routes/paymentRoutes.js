@@ -3,11 +3,11 @@ const router = express.Router();
 
 // Validation middleware for payment
 const validatePayment = (req, res, next) => {
-  const { name, amount, method, date, user_id } = req.body;
-  if (!name || !amount || !method || !date || !user_id) {
+  const { name,email, amount, method, date, user_id } = req.body;
+  if (!name || !email || !amount || !method || !date || !user_id) {
     return res.status(400).json({ 
       success: false,
-      message: 'Missing required fields: user_id,name, amount, method, date, user_id' 
+      message: 'Missing required fields: user_id,name,email, amount, method, date, user_id' 
     });
   }
   next();
@@ -17,7 +17,7 @@ const validatePayment = (req, res, next) => {
 router.get('/', async (req, res) => {
   try {
     const [rows] = await req.db.query(
-      'SELECT id, name, amount, method, date, user_id, created_at FROM payment'
+      'SELECT id, name,email, amount, method, date, user_id, created_at FROM payment'
     );
     res.json(rows);
   } catch (error) {
@@ -32,11 +32,11 @@ router.get('/', async (req, res) => {
 // POST create payment
 router.post('/', validatePayment, async (req, res) => {
   try {
-    const { name, amount, method, date, user_id } = req.body;
+    const { name,email, amount, method, date, user_id } = req.body;
 
     const [result] = await req.db.query(
-      'INSERT INTO payment (name, amount, method, date, user_id) VALUES (?, ?, ?, ?, ?)',
-      [name, amount, method, date, user_id]
+      'INSERT INTO payment (name,email, amount, method, date, user_id) VALUES (?, ?, ?, ?, ?, ?)',
+      [name,email, amount, method, date, user_id]
     );
 
     res.status(201).json({ 
@@ -45,6 +45,7 @@ router.post('/', validatePayment, async (req, res) => {
       data: { 
         id: result.insertId,
         name,
+        email,
         amount,
         method,
         date,
@@ -65,11 +66,11 @@ router.post('/', validatePayment, async (req, res) => {
 router.put('/:id', validatePayment, async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, amount, method, date, user_id } = req.body;
+    const { name, email, amount, method, date, user_id } = req.body;
 
     const [result] = await req.db.query(
-      'UPDATE payment SET name = ?, amount = ?, method = ?, date = ?, user_id = ? WHERE id = ?',
-      [name, amount, method, date, user_id, id]
+      'UPDATE payment SET name = ?, email = ?, amount = ?, method = ?, date = ?, user_id = ? WHERE id = ?',
+      [name, email, amount, method, date, user_id, id]
     );
 
     if (result.affectedRows === 0) {
