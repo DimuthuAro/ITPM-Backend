@@ -20,7 +20,7 @@ app.use(cors({
 const pool = mysql.createPool({
   host: "localhost",
   user: "root",
-  password: "root",
+  password: "JSd185m7#",
   database: "notegenius",
   waitForConnections: true,
   connectionLimit: 10,
