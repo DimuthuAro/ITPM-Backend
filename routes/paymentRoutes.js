@@ -3,10 +3,11 @@ const router = express.Router();
 
 // Validation middleware for payment
 const validatePayment = (req, res, next) => {
-  if (!req.body.amount || !req.body.method || !req.body.user_id) {
+  const { name,email, amount, method, date, user_id } = req.body;
+  if (!name || !email || !amount || !method || !date || !user_id) {
     return res.status(400).json({ 
       success: false,
-      message: 'Missing required fields: amount, method, user_id' 
+      message: 'Missing required fields: user_id,name,email, amount, method, date, user_id' 
     });
   }
   next();
@@ -16,7 +17,7 @@ const validatePayment = (req, res, next) => {
 router.get('/', async (req, res) => {
   try {
     const [rows] = await req.db.query(
-      'SELECT id, amount, method, user_id, created_at FROM payment'
+      'SELECT id, name,email, amount, method, date, user_id, created_at FROM payment'
     );
     res.json(rows);
   } catch (error) {
@@ -29,13 +30,13 @@ router.get('/', async (req, res) => {
 });
 
 // POST create payment
-router.post('/', async (req, res) => {
+router.post('/', validatePayment, async (req, res) => {
   try {
-    const { amount, method, user_id } = req.body;
+    const { name,email, amount, method, date, user_id } = req.body;
 
     const [result] = await req.db.query(
-      'INSERT INTO payment (amount, method, user_id) VALUES (?, ?, ?)',
-      [amount, method, user_id]
+      'INSERT INTO payment (name,email, amount, method, date, user_id) VALUES (?, ?, ?, ?, ?, ?)',
+      [name,email, amount, method, date, user_id]
     );
 
     res.status(201).json({ 
@@ -43,9 +44,13 @@ router.post('/', async (req, res) => {
       message: 'Payment created successfully',
       data: { 
         id: result.insertId,
+        name,
+        email,
         amount,
         method,
-        user_id
+        date,
+        user_id,
+        created_at: new Date() // Assuming created_at is the current timestamp
       }
     });
   } catch (error) {
@@ -58,14 +63,14 @@ router.post('/', async (req, res) => {
 });
 
 // PUT update payment
-router.put('/:id', async (req, res) => {
+router.put('/:id', validatePayment, async (req, res) => {
   try {
     const { id } = req.params;
-    const { amount, method, user_id } = req.body;
+    const { name, email, amount, method, date, user_id } = req.body;
 
     const [result] = await req.db.query(
-      'UPDATE payment SET amount = ?, method = ?, user_id = ? WHERE id = ?',
-      [amount, method, user_id, id]
+      'UPDATE payment SET name = ?, email = ?, amount = ?, method = ?, date = ?, user_id = ? WHERE id = ?',
+      [name, email, amount, method, date, user_id, id]
     );
 
     if (result.affectedRows === 0) {
