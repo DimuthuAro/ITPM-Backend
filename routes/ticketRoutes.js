@@ -5,10 +5,10 @@ const router = express.Router();
 
 // Validation middleware for ticket
 const validateTicket = (req, res, next) => {
-  if (!req.body.title || !req.body.name || !req.body.description || !req.body.issue_type || !req.body.user_id) {
+  if (!req.body.title || !req.body.name || !req.body.email || !req.body.description || !req.body.issue_type || !req.body.user_id) {
     return res.status(400).json({ 
       success: false,
-      message: 'Missing required fields: user_id, name , title, description, issue_type, priority  ' 
+      message: 'Missing required fields: user_id, name , email,  title, description, issue_type, priority  ' 
     });
   }
   next();
@@ -18,7 +18,7 @@ const validateTicket = (req, res, next) => {
 router.get('/', async (req, res) => {
   try {
     const [rows] = await req.db.query(
-      'SELECT id,user_id, name ,  title, description, issue_type, priority,  created_at FROM ticket'
+      'SELECT id,user_id, name , email,  title, description, issue_type, priority,  created_at FROM ticket'
     );
     res.json(rows);
   } catch (error) {
@@ -33,11 +33,11 @@ router.get('/', async (req, res) => {
 // POST create ticket
 router.post('/',  async (req, res) => {
   try {
-    const { user_id, name, title, description, issue_type, priority } = req.body;
+    const { user_id, name, email , title, description, issue_type, priority } = req.body;
 
     const [result] = await req.db.query(
-      'INSERT INTO ticket (user_id ,name ,title, description, issue_type, priority) VALUES (?, ?, ?, ?, ?, ?)',
-      [ user_id, name, title, description, issue_type, priority]
+      'INSERT INTO ticket (user_id ,name , email ,title, description, issue_type, priority) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [ user_id, name, email ,title, description, issue_type, priority]
     );
 
     res.status(201).json({ 
@@ -47,6 +47,7 @@ router.post('/',  async (req, res) => {
         id: result.insertId,
         user_id,
         name,
+        email,
         title,
         description,
         issue_type,
@@ -67,11 +68,11 @@ router.post('/',  async (req, res) => {
 router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { user_id , name,  title, description,issue_type, priority} = req.body;
+    const { user_id , name, email, title, description,issue_type, priority} = req.body;
 
     const [result] = await req.db.query(
-      'UPDATE ticket SET user_id = ? ,name = ? ,title = ?, description = ?, issue_type = ?, priority = ? WHERE id = ?',
-      [user_id, name, title, description, issue_type, priority,  id]
+      'UPDATE ticket SET user_id = ? ,name = ? ,email = ? , title = ?, description = ?, issue_type = ?, priority = ? WHERE id = ?',
+      [user_id, name, email ,title, description, issue_type, priority,  id]
     );
 
     if (result.affectedRows === 0) {
