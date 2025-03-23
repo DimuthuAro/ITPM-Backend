@@ -47,8 +47,8 @@ router.post('/', async (req, res) => {
     }
 
     const [result] = await req.db.query(
-      'INSERT INTO note (title, category, description, user_id) VALUES (?, ?, ?, ?)',
-      [title, category, description, user_id]
+      'INSERT INTO note (title, user_id, category, description) VALUES (?, ?, ?, ?)',
+      [title, user_id, category, description]
     );
 
     res.status(201).json({ 
@@ -76,7 +76,8 @@ router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const { title, category, description, user_id } = req.body;
-
+    console.log(id);
+    console.log(req.body);
     const [result] = await req.db.query(
       'UPDATE note SET title = ?, category = ?, description = ?, user_id = ? WHERE id = ?',
       [title, category, description, user_id, id]

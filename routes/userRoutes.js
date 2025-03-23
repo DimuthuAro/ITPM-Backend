@@ -1,5 +1,4 @@
 import express from 'express';
-import bcrypt from 'bcryptjs';
 const router = express.Router();
 
 // Validation middleware for user
