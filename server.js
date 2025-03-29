@@ -8,6 +8,7 @@ import userRoutes from './routes/userRoutes.js';
 import noteRoutes from './routes/noteRoutes.js';
 import paymentRoutes from './routes/paymentRoutes.js';
 import ticketRoutes from './routes/ticketRoutes.js';
+import authRoutes from './routes/authRoutes.js';
 
 dotenv.config();
 
@@ -32,6 +33,9 @@ app.use((req, _, next) => {
   req.db = pool;
   next();
 });
+
+// Routes
+app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/notes', noteRoutes);
 app.use('/api/payments', paymentRoutes);
